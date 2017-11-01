@@ -435,7 +435,7 @@
           <div class="tab-pane" id="tab_2">
             <div class="col-md-12">
               @if (!Auth::user()->isSuperUser())
-                <p class="alert alert-warning">Only superadmins may grant a user superadmin access.</p>
+                <p class="alert alert-warning">Only superadmins may grant a user some permissions.</p>
               @endif
             </div>
 
@@ -463,21 +463,21 @@
                   </td>
 
                   <td class="col-md-1 permissions-item">
-                    @if (($localPermission['permission'] == 'superuser') && (!Auth::user()->isSuperUser()))
+                    @if (($localPermission['superuser']) && (!Auth::user()->isSuperUser()))
                       {{ Form::radio('permission['.$localPermission['permission'].']', '1',$userPermissions[$localPermission['permission'] ] == '1',['disabled'=>"disabled"]) }}
                     @else
                       {{ Form::radio('permission['.$localPermission['permission'].']', '1',$userPermissions[$localPermission['permission'] ] == '1',['value'=>"grant"]) }}
                     @endif
                   </td>
                   <td class="col-md-1 permissions-item">
-                    @if (($localPermission['permission'] == 'superuser') && (!Auth::user()->isSuperUser()))
+                    @if (($localPermission['superuser']) && (!Auth::user()->isSuperUser()))
                       {{ Form::radio('permission['.$localPermission['permission'].']', '-1',$userPermissions[$localPermission['permission'] ] == '-1',['disabled'=>"disabled"]) }}
                     @else
                       {{ Form::radio('permission['.$localPermission['permission'].']', '-1',$userPermissions[$localPermission['permission'] ] == '-1',['value'=>"deny"]) }}
                     @endif
                   </td>
                   <td class="col-md-1 permissions-item">
-                    @if (($localPermission['permission'] == 'superuser') && (!Auth::user()->isSuperUser()))
+                    @if (($localPermission['superuser']) && (!Auth::user()->isSuperUser()))
                       {{ Form::radio('permission['.$localPermission['permission'].']','0',$userPermissions[$localPermission['permission'] ] == '0',['disabled'=>"disabled"] ) }}
                     @else
                       {{ Form::radio('permission['.$localPermission['permission'].']','0',$userPermissions[$localPermission['permission'] ] == '0',['value'=>"inherit"] ) }}
@@ -514,21 +514,21 @@
                       {{ $permission['label'] }}
                     </td>
                     <td class="col-md-1 permissions-item">
-                      @if (($permission['permission'] == 'superuser') && (!Auth::user()->isSuperUser()))
+                      @if (($permission['superuser']) && (!Auth::user()->isSuperUser()))
                       {{ Form::radio('permission['.$permission['permission'].']', '1', $userPermissions[$permission['permission'] ] == '1', ["value"=>"grant", 'disabled'=>'disabled']) }}
                       @else
                       {{ Form::radio('permission['.$permission['permission'].']', '1', $userPermissions[ $permission['permission'] ] == '1', ["value"=>"grant"]) }}
                       @endif
                     </td>
                     <td class="col-md-1 permissions-item">
-                      @if (($permission['permission'] == 'superuser') && (!Auth::user()->isSuperUser()))
+                      @if (($permission['superuser']) && (!Auth::user()->isSuperUser()))
                       {{ Form::radio('permission['.$permission['permission'].']', '-1', $userPermissions[$permission['permission'] ] == '-1', ["value"=>"deny", 'disabled'=>'disabled']) }}
                       @else
                       {{ Form::radio('permission['.$permission['permission'].']', '-1', $userPermissions[$permission['permission'] ] == '-1', ["value"=>"deny"]) }}
                       @endif
                     </td>
                     <td class="col-md-1 permissions-item">
-                      @if (($permission['permission'] == 'superuser') && (!Auth::user()->isSuperUser()))
+                      @if (($permission['superuser']) && (!Auth::user()->isSuperUser()))
                       {{ Form::radio('permission['.$permission['permission'].']', '0', $userPermissions[$permission['permission']] =='0', ["value"=>"inherit", 'disabled'=>'disabled']) }}
                       @else
                       {{ Form::radio('permission['.$permission['permission'].']', '0', $userPermissions[$permission['permission']] =='0', ["value"=>"inherit"]) }}
@@ -574,7 +574,7 @@ $(document).ready(function() {
 $('tr.header-row input:radio').click(function() {
   value = $(this).attr('value');
   $(this).parent().parent().siblings().each(function() {
-    $(this).find('td input:radio[value='+value+']').prop("checked", true);
+    $(this).find('td input:radio[value='+value+']:not([disabled])').prop("checked", true);
   })
 });
 

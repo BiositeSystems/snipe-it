@@ -128,7 +128,16 @@ class UsersController extends Controller
         $permissions_array = $request->input('permission');
 
         if (!Auth::user()->isSuperUser()) {
-            unset($permissions_array['superuser']);
+            $all_permissions = config('permissions');
+            foreach ($all_permissions as $permission) {
+                for ($x = 0; $x < count($permission); $x++) {
+                    $permission_name = $permission[$x]['permission'];
+
+                    if ($permission[$x]['superuser'] === true) {
+                        unset($permissions_array[$permission_name]);
+                    }
+                }
+            }
         }
         $user->permissions =  json_encode($permissions_array);
 
@@ -283,14 +292,7 @@ class UsersController extends Controller
 
             $user = User::find($id);
             $this->authorize('update', $user);
-            // Figure out of this user was an admin before this edit
             $orig_permissions_array = $user->decodePermissions();
-            $orig_superuser = '0';
-            if (is_array($orig_permissions_array)) {
-                if (array_key_exists('superuser', $orig_permissions_array)) {
-                    $orig_superuser = $orig_permissions_array['superuser'];
-                }
-            }
 
         } catch (UserNotFoundException $e) {
             $error = trans('admin/users/message.user_not_found', compact('id'));
@@ -339,8 +341,25 @@ class UsersController extends Controller
         $permissions_array = $request->input('permission');
 
         if (!Auth::user()->isSuperUser()) {
-            unset($permissions_array['superuser']);
-            $permissions_array['superuser'] = $orig_superuser;
+            $all_permissions = config('permissions');
+            foreach ($all_permissions as $permission) {
+
+                for ($x = 0; $x < count($permission); $x++) {
+                    $permission_name = $permission[$x]['permission'];
+
+                    if ($permission[$x]['superuser'] === true) {
+
+                        unset($permissions_array[$permission_name]);
+
+                        if (is_array($orig_permissions_array) && array_key_exists($permission_name, $orig_permissions_array)) {
+                            $permissions_array[$permission_name] = $orig_permissions_array[$permission_name];
+                        }
+                        else {
+                            $permissions_array[$permission_name] = '0';
+                        }
+                    }
+                }
+            }
         }
 
         $user->permissions =  json_encode($permissions_array);
@@ -1045,7 +1064,7 @@ class UsersController extends Controller
             return redirect()->route('ldap/user')->with('success', "LDAP Import successful.")->with('summary', $ldap_results['summary']);
         }
     }
-    
+
 
     /**
      * Exports users to CSV
