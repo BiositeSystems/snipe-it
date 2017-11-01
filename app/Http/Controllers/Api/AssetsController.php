@@ -83,7 +83,7 @@ class AssetsController extends Controller
             $allowed_columns[]=$field->db_column_name();
         }
 
-        $assets = Company::scopeCompanyables(Asset::select('assets.*'))->with(
+        $assets = Company::scopeCompanyables(Asset::select('assets.*'), 'assets.company_id')->with(
             'assetloc', 'assetstatus', 'defaultLoc', 'assetlog', 'company',
             'model.category', 'model.manufacturer', 'model.fieldset','supplier');
 
@@ -204,8 +204,8 @@ class AssetsController extends Controller
         // This handles all of the pivot sorting (versus the assets.* fields
         // in the allowed_columns array)
         $column_sort = in_array($sort_override, $allowed_columns) ? $sort_override : 'assets.created_at';
-        
-        
+
+
         switch ($sort_override) {
             case 'model':
                 $assets->OrderModels($order);
@@ -238,7 +238,7 @@ class AssetsController extends Controller
                 $assets->orderBy($column_sort, $order);
                 break;
         }
-        
+
         $total = $assets->count();
         $assets = $assets->skip($offset)->take($limit)->get();
         return (new AssetsTransformer)->transformAssets($assets, $total);
@@ -485,7 +485,7 @@ class AssetsController extends Controller
         $expected_checkin = request('expected_checkin', null);
         $note = request('note', null);
         $asset_name = request('name', null);
-        
+
 
         if ($asset->checkOut($target, Auth::user(), $checkout_at, $expected_checkin, $note, $asset_name)) {
             return response()->json(Helper::formatStandardApiResponse('success', ['asset'=> e($asset->asset_tag)], trans('admin/hardware/message.checkout.success')));
