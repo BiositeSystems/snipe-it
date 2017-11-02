@@ -433,7 +433,7 @@ class AssetsController extends Controller
         return view('hardware/checkout', compact('asset'))
             ->with('users_list', Helper::usersList())
             ->with('assets_list', Helper::detailedAssetList())
-            ->with('locations_list', Helper::locationsList());
+            ->with('locations_list', Helper::locationsList($asset->company_id));
     }
 
     /**
@@ -1201,7 +1201,7 @@ class AssetsController extends Controller
 
         $errors = [];
         DB::transaction(function () use ($user, $admin, $checkout_at, $expected_checkin, $errors, $asset_ids) {
-          
+
             foreach ($asset_ids as $asset_id) {
                 $asset = Asset::find($asset_id);
                 $this->authorize('checkout', $asset);

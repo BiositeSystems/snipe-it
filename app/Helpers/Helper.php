@@ -202,7 +202,7 @@ class Helper
         return array('' => trans('general.select_department')) + $departments->pluck('name', 'id')->toArray();
 
     }
-    
+
 
     /**
      * Get the list of suppliers in an array to make a dropdown menu
@@ -242,10 +242,15 @@ class Helper
      * @since [v2.5]
      * @return Array
      */
-    public static function locationsList()
+    public static function locationsList($company_id = null)
     {
-        $location_list = array('' => trans('general.select_location')) + Location::orderBy('name', 'asc')
-                ->pluck('name', 'id')->toArray();
+        $locations = Location::orderBy('name', 'asc');
+
+        if (!empty($company_id)) {
+            $locations = $locations->where('company_id', '=', $company_id)->orWhereNull('company_id');
+        }
+
+        $location_list = array('' => trans('general.select_location')) + $locations->pluck('name', 'id')->toArray();
         return $location_list;
     }
 
