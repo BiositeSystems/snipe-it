@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Helpers\Helper;
+use App\Models\Company;
 use App\Models\Location;
 use App\Http\Transformers\LocationsTransformer;
 
@@ -21,9 +22,9 @@ class LocationsController extends Controller
     {
         $this->authorize('view', Location::class);
         $allowed_columns = ['id','name','address','address2','city','state','country','zip','created_at',
-        'updated_at','parent_id', 'manager_id'];
+        'updated_at','parent_id', 'manager_id', 'company_id'];
 
-        $locations = Location::with('parent', 'manager', 'childLocations')->select([
+        $locations = Location::with('parent', 'manager', 'company', 'childLocations')->select([
             'locations.id',
             'locations.name',
             'locations.address',
@@ -34,6 +35,7 @@ class LocationsController extends Controller
             'locations.country',
             'locations.parent_id',
             'locations.manager_id',
+            'locations.company_id',
             'locations.created_at',
             'locations.updated_at',
             'locations.currency'
@@ -41,6 +43,7 @@ class LocationsController extends Controller
         ->withCount('assignedAssets')
         ->withCount('assets')
         ->withCount('users');
+        $locations = Company::scopeCompanyables($locations);
 
         if ($request->has('search')) {
             $locations = $locations->TextSearch($request->input('search'));

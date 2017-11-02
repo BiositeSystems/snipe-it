@@ -27,6 +27,7 @@
           data-cookie-id-table="locationsTable-{{ config('version.hash_version') }}">
             <thead>
               <tr>
+                <th data-sortable="true" data-formatter="companiesLinkObjFormatter" data-field="company" data-searchable="true">{{ trans('admin/companies/table.title') }}</th>
                 <th data-sortable="true" data-field="id" data-visible="false">{{ trans('general.id') }}</th>
                 <th data-sortable="true" data-formatter="locationsLinkFormatter" data-field="name" data-searchable="true">{{ trans('admin/locations/table.name') }}</th>
                 <th data-sortable="true" data-field="parent" data-formatter="locationsLinkObjFormatter">{{ trans('admin/locations/table.parent') }}</th>

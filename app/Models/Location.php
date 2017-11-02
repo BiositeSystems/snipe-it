@@ -19,6 +19,7 @@ class Location extends SnipeModel
     protected $table = 'locations';
     protected $rules = array(
       'name'        => 'required|min:2|max:255|unique_undeleted',
+      'company_id'      => 'integer|nullable',
       'city'        => 'min:3|max:255|nullable',
       'country'     => 'min:2|max:2|nullable',
       'address'         => 'max:80|nullable',
@@ -44,7 +45,7 @@ class Location extends SnipeModel
      *
      * @var array
      */
-    protected $fillable = ['name','parent_id','address','address2','city','state', 'country','zip','ldap_ou'];
+    protected $fillable = ['name','parent_id','company_id','address','address2','city','state', 'country','zip','ldap_ou'];
     protected $hidden = ['user_id'];
 
     public function users()
@@ -65,6 +66,11 @@ class Location extends SnipeModel
     public function parent()
     {
         return $this->belongsTo('\App\Models\Location', 'parent_id','id');
+    }
+
+    public function company()
+    {
+        return $this->belongsTo('\App\Models\Company', 'company_id');
     }
 
     public function manager()
@@ -164,6 +170,10 @@ class Location extends SnipeModel
               $query->whereHas('parent', function ($query) use ($search) {
                   $query->where(function ($query) use ($search) {
                       $query->where('name', 'LIKE', '%'.$search.'%');
+                  });
+              })->orWhere(function ($query) use ($search) {
+                  $query->whereHas('company', function ($query) use ($search) {
+                      $query->where('companies.name', 'LIKE', '%'.$search.'%');
                   });
               })
             // Ugly, ugly code because Laravel sucks at self-joins

@@ -10,6 +10,7 @@ use Redirect;
 use App\Models\Setting;
 use App\Models\User;
 use App\Models\Asset;
+use App\Models\Company;
 use DB;
 use Str;
 use Validator;
@@ -37,9 +38,6 @@ class LocationsController extends Controller
      */
     public function index()
     {
-        // Grab all the locations
-        $locations = Location::orderBy('created_at', 'DESC')->with('parent', 'assets', 'assignedassets')->get();
-
         // Show the page
         return view('locations/index', compact('locations'));
     }
@@ -64,7 +62,8 @@ class LocationsController extends Controller
         return view('locations/edit')
             ->with('location_options', $location_options)
             ->with('item', new Location)
-            ->with('manager_list', Helper::managerList());
+            ->with('manager_list', Helper::managerList())
+            ->with('company_list', Helper::companyList());
     }
 
 
@@ -91,6 +90,7 @@ class LocationsController extends Controller
         $location->zip              = Input::get('zip');
         $location->ldap_ou          = Input::get('ldap_ou');
         $location->manager_id       = Input::get('manager_id');
+        $location->company_id       = Company::getIdForUser(Input::get('company_id'));
         $location->user_id          = Auth::id();
 
         if ($location->save()) {
@@ -159,7 +159,8 @@ class LocationsController extends Controller
 
         return view('locations/edit', compact('item'))
             ->with('location_options', $location_options)
-            ->with('manager_list', Helper::managerList());
+            ->with('manager_list', Helper::managerList())
+            ->with('company_list', Helper::companyList());
     }
 
 
@@ -191,6 +192,7 @@ class LocationsController extends Controller
         $location->zip          = Input::get('zip');
         $location->ldap_ou      = Input::get('ldap_ou');
         $location->manager_id   = Input::get('manager_id');
+        $location->company_id   = Company::getIdForUser(Input::get('company_id'));
 
         // Was the location updated?
         if ($location->save()) {

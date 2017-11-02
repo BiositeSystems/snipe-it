@@ -48,7 +48,7 @@ class LocationsTransformer
                     'name'=> e($location->parent->name)
                 ] : null,
                 'manager' => ($location->manager) ? (new UsersTransformer)->transformUser($location->manager) : null,
-
+                'company' => ($location->company) ? (new CompaniesTransformer)->transformCompany($location->company) : null,
 
                 'children' => $children_arr,
             ];
