@@ -30,8 +30,7 @@ class ProfileController extends Controller
     public function getIndex()
     {
         $user = Auth::user();
-        $location_list = Helper::locationsList();
-        return view('account/profile', compact('user'))->with('location_list', $location_list);
+        return view('account/profile', compact('user'));
     }
 
     /**
@@ -109,12 +108,12 @@ class ProfileController extends Controller
     {
 
         if (config('app.lock_passwords')) {
-            return redirect()->route('account.password.index')->with('error', Lang::get('admin/users/table.lock_passwords'));
+            return redirect()->route('account.password.index')->with('error', trans('admin/users/table.lock_passwords'));
         }
 
         $user = Auth::user();
         if ($user->ldap_import=='1') {
-            return redirect()->route('account.password.index')->with('error', Lang::get('admin/users/message.error.password_ldap'));
+            return redirect()->route('account.password.index')->with('error', trans('admin/users/message.error.password_ldap'));
         }
 
         $rules = array(
@@ -141,6 +140,26 @@ class ProfileController extends Controller
         return redirect()->back()->withInput()->withErrors($validator);
 
 
+    }
+
+    /**
+     * Save the menu state of open/closed when the user clicks on the hamburger
+     * menu.
+     *
+     * This URL is triggered via jquery in
+     * resources/views/layouts/default.blade.php
+     *
+     * @author [A. Gianotto] [<snipe@snipe.net>]
+     * @since [v4.0]
+     * @return View
+     */
+
+    public function getMenuState(Request $request) {
+        if ($request->input('state')=='open') {
+            $request->session()->put('menu_state', 'open');
+        } else {
+            $request->session()->put('menu_state', 'closed');
+        }
     }
 
 

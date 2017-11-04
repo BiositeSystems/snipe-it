@@ -11,72 +11,7 @@ use Mail;
 
 class SettingsController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @author [A. Gianotto] [<snipe@snipe.net>]
-     * @since [v4.0]
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
-    }
 
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @author [A. Gianotto] [<snipe@snipe.net>]
-     * @since [v4.0]
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @author [A. Gianotto] [<snipe@snipe.net>]
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
-
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @author [A. Gianotto] [<snipe@snipe.net>]
-     * @since [v4.0]
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @author [A. Gianotto] [<snipe@snipe.net>]
-     * @since [v4.0]
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
-    }
 
     public function ldaptest()
     {
@@ -173,11 +108,11 @@ class SettingsController extends Controller
         if (!config('app.lock_passwords')) {
             try {
                 Mail::send('emails.test', [], function ($m) {
-                    $m->to(config('mail.from.address'), config('mail.from.name'));
+                    $m->to(config('mail.reply_to.address'), config('mail.reply_to.name'));
                     $m->replyTo(config('mail.reply_to.address'), config('mail.reply_to.name'));
                     $m->subject(trans('mail.test_email'));
                 });
-                return response()->json(['message' => 'Mail sent to '.config('mail.from.address')], 200);
+                return response()->json(['message' => 'Mail sent to '.config('mail.reply_to.address')], 200);
             } catch (Exception $e) {
                 return response()->json(['message' => $e->getMessage()], 500);
             }

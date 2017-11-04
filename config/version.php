@@ -1,7 +1,7 @@
 <?php
 return array (
-  'app_version' => 'v4.0.15',
-  'build_version' => '339',
-  'hash_version' => 'g17b2719',
-  'full_hash' => 'v4.0.15-339-g17b2719',
+  'app_version' => 'v4.1.3',
+  'build_version' => '94',
+  'hash_version' => 'gb6a14d2',
+  'full_hash' => 'v4.1.3-beta2-94-gb6a14d2',
 );
