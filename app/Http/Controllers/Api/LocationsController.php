@@ -166,6 +166,14 @@ class LocationsController extends Controller
             $locations = $locations->where('locations.name', 'LIKE', '%'.$request->get('search').'%');
         }
 
+        if ($request->has('company_id')) {
+            $locations = $locations->where(function ($query) use ($request) {
+                $query
+                    ->where('locations.company_id', '=', $request->get('company_id'))
+                    ->orWhereNull('locations.company_id');
+            });
+        }
+
         $locations = $locations->orderBy('name', 'ASC')->paginate(50);
 
         // Loop through and set some custom properties for the transformer to use.

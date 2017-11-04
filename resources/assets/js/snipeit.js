@@ -190,6 +190,7 @@ $(document).ready(function () {
         var link = $(item);
         var endpoint = link.data("endpoint");
         var select = link.data("select");
+        var company_id = link.data("company-id");
 
         link.select2({
 
@@ -204,7 +205,8 @@ $(document).ready(function () {
                 data: function (params) {
                     var data = {
                         search: params.term,
-                        page: params.page || 1
+                        page: params.page || 1,
+                        company_id: company_id,
                     };
                     return data;
                 },
