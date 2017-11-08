@@ -456,11 +456,24 @@ class AssetsController extends Controller
 
         if (request('assigned_user')) {
             $target = User::find(request('assigned_user'));
+            $asset->location_id = ($target) ? $target->location_id : '';
         } elseif (request('assigned_asset')) {
             $target = Asset::where('id','!=',$assetId)->find(request('assigned_asset'));
+            $asset->location_id = $target->rtd_location_id;
+            // Override with the asset's location_id if it has one
+            if ($target->location_id!='') {
+                $asset->location_id = ($target) ? $target->location_id : '';
+            }
+
         } elseif (request('assigned_location')) {
             $target = Location::find(request('assigned_location'));
+            $asset->location_id = ($target) ? $target->id : '';
         }
+        // No valid target was found - error out
+        if (!$target) {
+            return redirect()->to("hardware/$assetId/checkout")->with('error', trans('admin/hardware/message.checkout.error'))->withErrors($asset->getErrors());
+        }
+
         // $user = User::find(Input::get('assigned_to'));
         $admin = Auth::user();
 
@@ -479,11 +492,6 @@ class AssetsController extends Controller
         // Set the location ID to the RTD location id if there is one
         if ($asset->rtd_location_id!='') {
             $asset->location_id = $target->rtd_location_id;
-        }
-
-        // Overwrite that if the target has a location ID though
-        if ($target->location_id!='') {
-            $asset->location_id = $target->location_id;
         }
 
         if ($asset->checkOut($target, $admin, $checkout_at, $expected_checkin, e(Input::get('note')), Input::get('name'))) {
@@ -559,7 +567,7 @@ class AssetsController extends Controller
         }
 
         $asset->location_id = $asset->rtd_location_id;
-        
+
         if (Input::has('location_id')) {
             $asset->location_id =  e(Input::get('location_id'));
         }
