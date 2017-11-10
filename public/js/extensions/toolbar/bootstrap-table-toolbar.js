@@ -108,7 +108,7 @@
     $.extend($.fn.bootstrapTable.defaults, $.fn.bootstrapTable.locales);
 
     var BootstrapTable = $.fn.bootstrapTable.Constructor,
-        _initToolbar = BootstrapTable.prototype.initToolbar,        
+        _initToolbar = BootstrapTable.prototype.initToolbar,
         _load = BootstrapTable.prototype.load,
         _initSearch = BootstrapTable.prototype.initSearch;
 
@@ -197,6 +197,11 @@
         if ($.isEmptyObject(this.filterColumnsPartial)) {
             this.filterColumnsPartial = {};
         }
+
+        if(this.filterColumnsPartial[$field] === text) {
+            return;
+        }
+
         if (text) {
             this.filterColumnsPartial[$field] = text;
         } else {
@@ -204,7 +209,7 @@
         }
 
         this.options.pageNumber = 1;
-        this.onSearch(event);
+        this.initSearch();
         this.updatePagination();
         this.trigger('column-advanced-search', $field, text);
     };
