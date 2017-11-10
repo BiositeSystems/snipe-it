@@ -841,57 +841,23 @@ class Asset extends Depreciable
 
                 $fieldname = str_replace('custom_fields.','', $key) ;
 
-                if ($fieldname =='asset_tag') {
-                    $query->where('assets.asset_tag', 'LIKE', '%'.$search_val.'%');
-                }
-
-                if ($fieldname =='name') {
-                    $query->where('assets.name', 'LIKE', '%'.$search_val.'%');
-                }
-
                 if ($fieldname =='product_key') {
                     $query->where('assets.serial', 'LIKE', '%'.$search_val.'%');
                 }
-
-                if ($fieldname =='purchase_date') {
-                    $query->where('assets.purchase_date', 'LIKE', '%'.$search_val.'%');
-                }
-
-                if ($fieldname =='purchase_cost') {
-                    $query->where('assets.purchase_cost', 'LIKE', '%'.$search_val.'%');
-                }
-
-                if ($fieldname =='notes') {
-                    $query->where('assets.notes', 'LIKE', '%'.$search_val.'%');
-                }
-
-                if ($fieldname =='order_number') {
-                    $query->where('assets.order_number', 'LIKE', '%'.$search_val.'%');
-                }
-
-                if ($fieldname =='status_label') {
+                else if ($fieldname =='status_label') {
                     $query->whereHas('assetstatus', function ($query) use ($search_val) {
                         $query->where('status_labels.name', 'LIKE', '%' . $search_val . '%');
                     });
                 }
-
-                if ($fieldname =='location') {
+                else if ($fieldname =='location') {
                     $query->whereHas('location', function ($query) use ($search_val) {
                         $query->where('locations.name', 'LIKE', '%' . $search_val . '%');
                     });
                 }
-
-                if ($fieldname =='checkedout_to') {
-                    $query->whereHas('assigneduser', function ($query) use ($search_val) {
-                        $query->where(function ($query) use ($search_val) {
-                            $query->where('users.first_name', 'LIKE', '%' . $search_val . '%')
-                                ->orWhere('users.last_name', 'LIKE', '%' . $search_val . '%');
-                        });
-                    });
+                else if ($fieldname =='assigned_to') {
+                  // let the front end search this - the backend can't cope
                 }
-
-
-                if ($fieldname =='manufacturer') {
+                else if ($fieldname =='manufacturer') {
                     $query->whereHas('model', function ($query) use ($search_val) {
                         $query->whereHas('manufacturer', function ($query) use ($search_val) {
                             $query->where(function ($query) use ($search_val) {
@@ -900,8 +866,7 @@ class Asset extends Depreciable
                         });
                     });
                 }
-
-                if ($fieldname =='category') {
+                else if ($fieldname =='category') {
                     $query->whereHas('model', function ($query) use ($search_val) {
                         $query->whereHas('category', function ($query) use ($search_val) {
                             $query->where(function ($query) use ($search_val) {
@@ -912,44 +877,31 @@ class Asset extends Depreciable
                         });
                     });
                 }
-
-                if ($fieldname =='model') {
+                else if ($fieldname =='model') {
                     $query->where(function ($query) use ($search_val) {
                         $query->whereHas('model', function ($query) use ($search_val) {
                             $query->where('models.name', 'LIKE', '%' . $search_val . '%');
                         });
                     });
                 }
-
-                if ($fieldname =='model_number') {
+                else if ($fieldname =='model_number') {
                     $query->where(function ($query) use ($search_val) {
                         $query->whereHas('model', function ($query) use ($search_val) {
                             $query->where('models.model_number', 'LIKE', '%' . $search_val . '%');
                         });
                     });
                 }
-
-
-                if ($fieldname =='company') {
+                else if ($fieldname =='company') {
                     $query->where(function ($query) use ($search_val) {
                         $query->whereHas('company', function ($query) use ($search_val) {
                             $query->where('companies.name', 'LIKE', '%' . $search_val . '%');
                         });
                     });
                 }
+                else {
+                    $query->where('assets.'.$fieldname, 'LIKE', '%' . $search_val . '%');
+                }
             }
-
-            if (($fieldname!='category')
-              && ($fieldname!='status_label')
-              && ($fieldname!='model')
-              && ($fieldname!='company')
-              && ($fieldname!='location')) {
-                $query->orWhere('assets.'.$fieldname, 'LIKE', '%' . $search_val . '%');
-            }
-
-
-
-
         });
 
     }

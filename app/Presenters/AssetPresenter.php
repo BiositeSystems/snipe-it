@@ -95,7 +95,7 @@ class AssetPresenter extends Presenter
             ], [
                 "field" => "assigned_to",
                 "searchable" => true,
-                "sortable" => true,
+                "sortable" => false,
                 "title" => trans('admin/hardware/form.checkedout_to'),
                 "visible" => true,
                 "formatter" => "polymorphicItemFormatter"
@@ -229,7 +229,7 @@ class AssetPresenter extends Presenter
             "visible" => true,
             "formatter" => "hardwareInOutFormatter",
         ];
-        
+
         $layout[] = [
             "field" => "actions",
             "searchable" => false,
@@ -242,7 +242,7 @@ class AssetPresenter extends Presenter
         return json_encode($layout);
     }
 
-    
+
 
     /**
      * Generate html link to this items name.
@@ -306,7 +306,7 @@ class AssetPresenter extends Presenter
      **/
     public function name()
     {
-        
+
         if (empty($this->model->name)) {
             if (isset($this->model->model)) {
                 return $this->model->model->name.' ('.$this->model->asset_tag.')';
