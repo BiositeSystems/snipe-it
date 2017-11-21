@@ -454,27 +454,32 @@ class AssetsController extends Controller
         }
         $this->authorize('checkout', $asset);
 
+
+        // Fetch the target and set the asset's new location_id
         if (request('assigned_user')) {
             $target = User::find(request('assigned_user'));
             $asset->location_id = ($target) ? $target->location_id : '';
+
         } elseif (request('assigned_asset')) {
+
             $target = Asset::where('id','!=',$assetId)->find(request('assigned_asset'));
             $asset->location_id = $target->rtd_location_id;
+
             // Override with the asset's location_id if it has one
             if ($target->location_id!='') {
                 $asset->location_id = ($target) ? $target->location_id : '';
             }
-
+            
         } elseif (request('assigned_location')) {
             $target = Location::find(request('assigned_location'));
             $asset->location_id = ($target) ? $target->id : '';
         }
+
         // No valid target was found - error out
         if (!$target) {
             return redirect()->to("hardware/$assetId/checkout")->with('error', trans('admin/hardware/message.checkout.error'))->withErrors($asset->getErrors());
         }
 
-        // $user = User::find(Input::get('assigned_to'));
         $admin = Auth::user();
 
         if ((Input::has('checkout_at')) && (Input::get('checkout_at')!= date("Y-m-d"))) {
@@ -489,17 +494,13 @@ class AssetsController extends Controller
             $expected_checkin = '';
         }
 
-        // Set the location ID to the RTD location id if there is one
-        if ($asset->rtd_location_id!='') {
-            $asset->location_id = $target->rtd_location_id;
-        }
 
         if ($asset->checkOut($target, $admin, $checkout_at, $expected_checkin, e(Input::get('note')), Input::get('name'))) {
 //           Redirect to the new asset page
             return redirect()->route("hardware.index")->with('success', trans('admin/hardware/message.checkout.success'));
         }
 
-      // Redirect to the asset management page with error
+        // Redirect to the asset management page with error
         return redirect()->to("hardware/$assetId/checkout")->with('error', trans('admin/hardware/message.checkout.error'))->withErrors($asset->getErrors());
     }
 
@@ -665,20 +666,23 @@ class AssetsController extends Controller
 
         if ($settings->qr_code == '1') {
             $asset = Asset::withTrashed()->find($assetId);
-            $size = Helper::barcodeDimensions($settings->barcode_type);
-            $qr_file = public_path().'/uploads/barcodes/qr-'.str_slug($asset->asset_tag).'-'.str_slug($asset->id).'.png';
+            if ($asset) {
+                $size = Helper::barcodeDimensions($settings->barcode_type);
+                $qr_file = public_path().'/uploads/barcodes/qr-'.str_slug($asset->asset_tag).'-'.str_slug($asset->id).'.png';
 
-            if (isset($asset->id, $asset->asset_tag)) {
-                if (file_exists($qr_file)) {
-                    $header = ['Content-type' => 'image/png'];
-                    return response()->file($qr_file, $header);
-                } else {
-                    $barcode = new \Com\Tecnick\Barcode\Barcode();
-                    $barcode_obj =  $barcode->getBarcodeObj($settings->barcode_type, route('hardware.show', $asset->id), $size['height'], $size['width'], 'black', array(-2, -2, -2, -2));
-                    file_put_contents($qr_file, $barcode_obj->getPngData());
-                    return response($barcode_obj->getPngData())->header('Content-type', 'image/png');
+                if (isset($asset->id, $asset->asset_tag)) {
+                    if (file_exists($qr_file)) {
+                        $header = ['Content-type' => 'image/png'];
+                        return response()->file($qr_file, $header);
+                    } else {
+                        $barcode = new \Com\Tecnick\Barcode\Barcode();
+                        $barcode_obj =  $barcode->getBarcodeObj($settings->barcode_type, route('hardware.show', $asset->id), $size['height'], $size['width'], 'black', array(-2, -2, -2, -2));
+                        file_put_contents($qr_file, $barcode_obj->getPngData());
+                        return response($barcode_obj->getPngData())->header('Content-type', 'image/png');
+                    }
                 }
             }
+            return 'That asset is invalid';
         }
     }
 
@@ -938,8 +942,8 @@ class AssetsController extends Controller
 
         $destinationPath = config('app.private_uploads').'/assets';
 
-        if ($request->hasFile('image')) {
-            foreach ($request->file('image') as $file) {
+        if ($request->hasFile('assetfile')) {
+            foreach ($request->file('assetfile') as $file) {
                 $extension = $file->getClientOriginalExtension();
                 $filename = 'hardware-'.$asset->id.'-'.str_random(8);
                 $filename .= '-'.str_slug($file->getClientOriginalName()).'.'.$extension;

@@ -58,8 +58,6 @@ class AssetMaintenancesController extends Controller
 
         $total = $maintenances->count();
         $maintenances = $maintenances->skip($offset)->take($limit)->get();
-
-
         return (new AssetMaintenancesTransformer())->transformAssetMaintenances($maintenances, $total);
 
 

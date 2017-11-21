@@ -182,21 +182,20 @@ class AssetModelsController extends Controller
      */
     public function selectlist(Request $request)
     {
-        $this->authorize('view', AssetModel::class);
 
         $assetmodels = AssetModel::select([
             'models.id',
             'models.name',
             'models.image',
             'models.model_number',
-        ]);
+        ])->with('manufacturer');
 
 
         if ($request->has('search')) {
             $assetmodels = $assetmodels->where('models.name', 'LIKE', '%'.$request->get('search').'%')
                 ->orWhere('models.model_number', 'LIKE', '%'.$request->get('search').'%');
         }
-        $assetmodels = $assetmodels->paginate(50);
+        $assetmodels = $assetmodels->orderby('models.name', 'asc')->orderby('models.model_number', 'asc')->paginate(50);
 
         foreach ($assetmodels as $assetmodel) {
             $assetmodel->use_text = $assetmodel->present()->modelName;

@@ -52,7 +52,7 @@
             @endif
 
         @if ($snipeSettings->custom_css)
-            {{ $snipeSettings->show_custom_css() }}
+            {!! $snipeSettings->show_custom_css() !!}
         @endif
      @endif
     @media (max-width: 400px) {
@@ -239,6 +239,7 @@
                @endcan
 
                @can('admin')
+               @if ($snipeSettings->show_alerts_in_menu=='1')
                <!-- Tasks: style can be found in dropdown.less -->
                <?php $alert_items = \App\Helpers\Helper::checkLowInventory(); ?>
 
@@ -281,6 +282,7 @@
                  </ul>
                </li>
                @endcan
+               @endif
 
 
                <!-- User Account: style can be found in dropdown.less -->
@@ -511,7 +513,7 @@
             @endcan
 
             @can('backend.interact')
-                <li>
+                <li class="treeview">
                     <a href="#">
                         <i class="fa fa-gear"></i>
                         <span>{{ trans('general.settings') }}</span>
@@ -771,6 +773,7 @@
     <script nonce="{{ csrf_token() }}">
         $(function () {
             $('[data-toggle="tooltip"]').tooltip();
+            $('.select2 span').addClass('needsclick');
 
             // This javascript handles saving the state of the menu (expanded or not)
             $('body').bind('expanded.pushMenu', function() {
@@ -797,6 +800,8 @@
             event.preventDefault();
             $(this).ekkoLightbox();
         });
+
+
 
     </script>
 
