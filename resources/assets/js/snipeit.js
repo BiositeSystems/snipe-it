@@ -257,8 +257,40 @@ $(document).ready(function () {
         return datalist.text;
     }
 
+    // This handles the radio button selectors for the checkout-to-foo options
+    // on asset checkout and also on asset edit
+    $(function() {
+        $('input[name=checkout_to_type]').on("change",function () {
+            var assignto_type = $('input[name=checkout_to_type]:checked').val();
+            var userid = $('#assigned_user option:selected').val();
 
+            if (assignto_type == 'asset') {
+                $('#current_assets_box').fadeOut();
+                $('#assigned_asset').show();
+                $('#assigned_user').hide();
+                $('#assigned_location').hide();
+                $('.notification-callout').fadeOut();
 
+            } else if (assignto_type == 'location') {
+                $('#current_assets_box').fadeOut();
+                $('#assigned_asset').hide();
+                $('#assigned_user').hide();
+                $('#assigned_location').show();
+                $('.notification-callout').fadeOut();
+            } else  {
+
+                $('#assigned_asset').hide();
+                $('#assigned_user').show();
+                $('#assigned_location').hide();
+                if (userid) {
+                    $('#current_assets_box').fadeIn();
+                }
+                $('.notification-callout').fadeIn();
+
+            }
+        });
+    });
+    
 
 
 });

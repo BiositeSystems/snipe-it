@@ -276,6 +276,14 @@
 
     }
 
+    // This just prints out the item type in the activity report
+    function itemTypeFormatter(value, row) {
+
+        if ((row) && (row.item) && (row.item.type)) {
+            return row.item.type;
+        }
+    }
+
 
     function genericCheckinCheckoutFormatter(destination) {
         return function (value,row) {
@@ -354,7 +362,18 @@
             // (for example, the locked icon for encrypted fields)
             var field_column_plain = field_column.replace(/<(?:.|\n)*?> ?/gm, '');
             if ((row.custom_fields) && (row.custom_fields[field_column_plain])) {
+
+                // If the field type needs special formatting, do that here
+                if ((row.custom_fields[field_column_plain].field_format) && (row.custom_fields[field_column_plain].value)) {
+                    if (row.custom_fields[field_column_plain].field_format=='URL') {
+                        return '<a href="' + row.custom_fields[field_column_plain].value + '" target="_blank" rel="noopener">' + row.custom_fields[field_column_plain].value + '</a>';
+                    } else if (row.custom_fields[field_column_plain].field_format=='EMAIL') {
+                        return '<a href="mailto:' + row.custom_fields[field_column_plain].value + '">' + row.custom_fields[field_column_plain].value + '</a>';
+                    }
+                }
+                console.log('NOT a URL!');
                 return row.custom_fields[field_column_plain].value;
+
             }
 
     }
@@ -429,7 +448,7 @@
     }
 
     function assetCompanyObjFilterFormatter(value, row) {
-        if (row.company) {
+        if ((row) && (row.company)) {
             return '<a href="{{ url('/') }}/hardware/?company_id=' + row.company.id + '"> ' + row.company.name + '</a>';
         }
     }
@@ -444,7 +463,7 @@
 
     function employeeNumFormatter(value, row) {
 
-        if ((row.assigned_to) && ((row.assigned_to.employee_number))) {
+        if ((row) && (row.assigned_to) && ((row.assigned_to.employee_number))) {
             return '<a href="{{ url('/') }}/users/' + row.assigned_to.id + '"> ' + row.assigned_to.employee_number + '</a>';
         }
     }
