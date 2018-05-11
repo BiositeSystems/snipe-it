@@ -235,7 +235,7 @@ class Helper
      */
     public static function statusLabelList()
     {
-        $statuslabel_list = array('' => trans('general.select_statuslabel')) + Statuslabel::orderBy('deployable', 'desc')
+        $statuslabel_list = array('' => trans('general.select_statuslabel')) + Statuslabel::orderBy('default_label', 'desc')->orderBy('name','asc')->orderBy('deployable','desc')
                 ->pluck('name', 'id')->toArray();
         return $statuslabel_list;
     }
@@ -465,19 +465,19 @@ class Helper
      */
     public static function checkLowInventory()
     {
-        $consumables = Consumable::with('users')->whereNotNull('min_amt')->get();
-        $accessories = Accessory::with('users')->whereNotNull('min_amt')->get();
-        $components = Component::with('assets')->whereNotNull('min_amt')->get();
+        $consumables = Consumable::withCount('consumableAssignments')->whereNotNull('min_amt')->get();
+        $accessories = Accessory::withCount('users')->whereNotNull('min_amt')->get();
+        $components = Component::withCount('assets')->whereNotNull('min_amt')->get();
 
         $avail_consumables = 0;
         $items_array = array();
         $all_count = 0;
 
         foreach ($consumables as $consumable) {
-            $avail = $consumable->numRemaining();
+            $avail = $consumable->qty - $consumable->consumable_assignment_count;  //$consumable->numRemaining();
             if ($avail < ($consumable->min_amt) + \App\Models\Setting::getSettings()->alert_threshold) {
                 if ($consumable->qty > 0) {
-                    $percent = number_format((($consumable->numRemaining() / $consumable->qty) * 100), 0);
+                    $percent = number_format((($avail / $consumable->qty) * 100), 0);
                 } else {
                     $percent = 100;
                 }
@@ -486,7 +486,7 @@ class Helper
                 $items_array[$all_count]['name'] = $consumable->name;
                 $items_array[$all_count]['type'] = 'consumables';
                 $items_array[$all_count]['percent'] = $percent;
-                $items_array[$all_count]['remaining']=$consumable->numRemaining();
+                $items_array[$all_count]['remaining'] = $avail;
                 $items_array[$all_count]['min_amt']=$consumable->min_amt;
                 $all_count++;
             }
@@ -495,11 +495,11 @@ class Helper
         }
 
         foreach ($accessories as $accessory) {
-            $avail = $accessory->numRemaining();
+            $avail = $accessory->qty - $accessory->users_count;
             if ($avail < ($accessory->min_amt) + \App\Models\Setting::getSettings()->alert_threshold) {
 
                 if ($accessory->qty > 0) {
-                    $percent = number_format((($accessory->numRemaining() / $accessory->qty) * 100), 0);
+                    $percent = number_format((($avail / $accessory->qty) * 100), 0);
                 } else {
                     $percent = 100;
                 }
@@ -508,7 +508,7 @@ class Helper
                 $items_array[$all_count]['name'] = $accessory->name;
                 $items_array[$all_count]['type'] = 'accessories';
                 $items_array[$all_count]['percent'] = $percent;
-                $items_array[$all_count]['remaining']=$accessory->numRemaining();
+                $items_array[$all_count]['remaining'] = $avail;
                 $items_array[$all_count]['min_amt']=$accessory->min_amt;
                 $all_count++;
             }
@@ -516,10 +516,10 @@ class Helper
         }
 
         foreach ($components as $component) {
-            $avail = $component->numRemaining();
+            $avail = $component->qty - $component->assets_count;
             if ($avail < ($component->min_amt) + \App\Models\Setting::getSettings()->alert_threshold) {
                 if ($component->qty > 0) {
-                    $percent = number_format((($component->numRemaining() / $component->qty) * 100), 0);
+                    $percent = number_format((($avail / $component->qty) * 100), 0);
                 } else {
                     $percent = 100;
                 }
@@ -528,7 +528,7 @@ class Helper
                 $items_array[$all_count]['name'] = $component->name;
                 $items_array[$all_count]['type'] = 'components';
                 $items_array[$all_count]['percent'] = $percent;
-                $items_array[$all_count]['remaining']=$component->numRemaining();
+                $items_array[$all_count]['remaining'] = $avail;
                 $items_array[$all_count]['min_amt']=$component->min_amt;
                 $all_count++;
             }
@@ -695,7 +695,7 @@ class Helper
 
         $array['status'] = $status;
         $array['messages'] = $messages;
-        if (($messages) && (count($messages) > 0)) {
+        if (($messages) &&  (is_array($messages)) && (count($messages) > 0)) {
             $array['messages'] = $messages;
         }
         ($payload) ? $array['payload'] = $payload : $array['payload'] = null;
@@ -734,6 +734,123 @@ class Helper
         return $dt['formatted'];
 
     }
+
+
+    // Nicked from Drupal :)
+    // Returns a file size limit in bytes based on the PHP upload_max_filesize
+    // and post_max_size
+    public static function file_upload_max_size() {
+        static $max_size = -1;
+
+        if ($max_size < 0) {
+            // Start with post_max_size.
+            $post_max_size = Helper::parse_size(ini_get('post_max_size'));
+            if ($post_max_size > 0) {
+                $max_size = $post_max_size;
+            }
+
+            // If upload_max_size is less, then reduce. Except if upload_max_size is
+            // zero, which indicates no limit.
+            $upload_max = Helper::parse_size(ini_get('upload_max_filesize'));
+            if ($upload_max > 0 && $upload_max < $max_size) {
+                $max_size = $upload_max;
+            }
+        }
+        return $max_size;
+    }
+
+    public static function file_upload_max_size_readable() {
+        static $max_size = -1;
+
+        if ($max_size < 0) {
+            // Start with post_max_size.
+            $post_max_size = Helper::parse_size(ini_get('post_max_size'));
+            if ($post_max_size > 0) {
+                $max_size = ini_get('post_max_size');
+            }
+
+            // If upload_max_size is less, then reduce. Except if upload_max_size is
+            // zero, which indicates no limit.
+            $upload_max = Helper::parse_size(ini_get('upload_max_filesize'));
+            if ($upload_max > 0 && $upload_max < $max_size) {
+                $max_size = ini_get('upload_max_filesize');
+            }
+        }
+        return $max_size;
+    }
+
+    public static function parse_size($size) {
+        $unit = preg_replace('/[^bkmgtpezy]/i', '', $size); // Remove the non-unit characters from the size.
+        $size = preg_replace('/[^0-9\.]/', '', $size); // Remove the non-numeric characters from the size.
+        if ($unit) {
+            // Find the position of the unit in the ordered string which is the power of magnitude to multiply a kilobyte by.
+            return round($size * pow(1024, stripos('bkmgtpezy', $unit[0])));
+        }
+        else {
+            return round($size);
+        }
+    }
+
+
+    public static function filetype_icon($filename) {
+
+        $extension = substr(strrchr($filename,'.'),1);
+
+        if ($extension) {
+            switch ($extension) {
+                case 'jpg':
+                case 'jpeg':
+                case 'gif':
+                case 'png':
+                    return "fa fa-file-image-o";
+                    break;
+                case 'doc':
+                case 'docx':
+                    return "fa fa-file-word-o";
+                    break;
+                case 'xls':
+                case 'xlsx':
+                    return "fa fa-file-excel-o";
+                    break;
+                case 'zip':
+                case 'rar':
+                    return "fa fa-file-archive-o";
+                    break;
+                case 'pdf':
+                    return "fa fa-file-pdf-o";
+                    break;
+                case 'txt':
+                    return "fa fa-file-text-o";
+                    break;
+                case 'lic':
+                    return "fa fa-floppy-o";
+                    break;
+                default:
+                    return "fa fa-file-o";
+            }
+        }
+        return "fa fa-file-o";
+    }
+
+    public static function show_file_inline($filename) {
+
+        $extension = substr(strrchr($filename,'.'),1);
+
+        if ($extension) {
+            switch ($extension) {
+                case 'jpg':
+                case 'jpeg':
+                case 'gif':
+                case 'png':
+                    return true;
+                    break;
+                default:
+                    return false;
+            }
+        }
+        return false;
+    }
+
 
 
 

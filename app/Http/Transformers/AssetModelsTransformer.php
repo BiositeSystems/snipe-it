@@ -34,7 +34,7 @@ class AssetModelsTransformer
                 'id' => (int) $assetmodel->depreciation->id,
                 'name'=> e($assetmodel->depreciation->name)
             ]  : null,
-            'assets_count' => $assetmodel->assets_count,
+            'assets_count' => (int) $assetmodel->assets_count,
             'category' => ($assetmodel->category) ? [
                 'id' => (int) $assetmodel->category->id,
                 'name'=> e($assetmodel->category->name)
@@ -53,7 +53,7 @@ class AssetModelsTransformer
 
         $permissions_array['available_actions'] = [
             'update' => (Gate::allows('update', AssetModel::class) && ($assetmodel->deleted_at==''))  ? true : false,
-            'delete' => (Gate::allows('delete', AssetModel::class) && ($assetmodel->deleted_at=='')) ? true : false,
+            'delete' => (Gate::allows('delete', AssetModel::class) && ($assetmodel->assets_count==0) && ($assetmodel->deleted_at=='')) ? true : false,
             'clone' => (Gate::allows('create', AssetModel::class) && ($assetmodel->deleted_at=='')) ,
             'restore' => (Gate::allows('create', AssetModel::class) && ($assetmodel->deleted_at!='')) ? true : false,
         ];

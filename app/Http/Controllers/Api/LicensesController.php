@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
+use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
+use App\Http\Transformers\LicenseSeatsTransformer;
 use App\Http\Transformers\LicensesTransformer;
-use App\Models\License;
 use App\Models\Company;
+use App\Models\License;
+use App\Models\LicenseSeat;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class LicensesController extends Controller
 {
@@ -23,9 +27,6 @@ class LicensesController extends Controller
         $this->authorize('view', License::class);
         $licenses = Company::scopeCompanyables(License::with('company', 'manufacturer', 'freeSeats', 'supplier')->withCount('freeSeats'));
 
-        if ($request->has('search')) {
-            $licenses = $licenses->TextSearch($request->input('search'));
-        }
 
         if ($request->has('company_id')) {
             $licenses->where('company_id','=',$request->input('company_id'));
@@ -71,6 +72,12 @@ class LicensesController extends Controller
             $licenses->where('supplier_id','=',$request->input('supplier_id'));
         }
 
+
+        if ($request->has('search')) {
+            $licenses = $licenses->TextSearch($request->input('search'));
+        }
+
+
         $offset = request('offset', 0);
         $limit = request('limit', 50);
         $order = $request->input('order') === 'asc' ? 'asc' : 'desc';
@@ -92,7 +99,8 @@ class LicensesController extends Controller
                 $licenses = $licenses->orderBy($sort, $order);
                 break;
         }
-        
+
+
 
         $total = $licenses->count();
 
@@ -115,6 +123,14 @@ class LicensesController extends Controller
     public function store(Request $request)
     {
         //
+        $this->authorize('create', License::class);
+        $license = new License;
+        $license->fill($request->all());
+
+        if($license->save()) {
+            return response()->json(Helper::formatStandardApiResponse('success', $license, trans('admin/licenses/message.create.success')));
+        }
+        return response()->json(Helper::formatStandardApiResponse('error', null, $license->getErrors()));
     }
 
     /**
@@ -126,13 +142,10 @@ class LicensesController extends Controller
      */
     public function show($id)
     {
-        $license = License::find($id);
-        if (isset($license->id)) {
-            $license = $license->load('assignedusers', 'licenseSeats.user', 'licenseSeats.asset');
-            $this->authorize('view', $license);
-            return (new LicensesTransformer)->transformLicense($license);
-        }
-        return response()->json(Helper::formatStandardApiResponse('error', null, trans('admin/licenses/message.does_not_exist')), 200);
+        $this->authorize('view', License::class);
+        $license = License::findOrFail($id);
+        $license = $license->load('assignedusers', 'licenseSeats.user', 'licenseSeats.asset');
+        return (new LicensesTransformer)->transformLicense($license);
     }
 
 
@@ -148,6 +161,16 @@ class LicensesController extends Controller
     public function update(Request $request, $id)
     {
         //
+        $this->authorize('edit', License::class);
+
+        $license = License::findOrFail($id);
+        $license->fill($request->all());
+
+        if ($license->save()) {
+            return response()->json(Helper::formatStandardApiResponse('success', $license, trans('admin/licenses/message.update.success')));
+        }
+
+        return Helper::formatStandardApiResponse('error', null, $license->getErrors());
     }
 
     /**
@@ -161,5 +184,56 @@ class LicensesController extends Controller
     public function destroy($id)
     {
         //
+        $license = License::findOrFail($id);
+        $this->authorize('delete', $license);
+
+        if($license->assigned_seats_count == 0) {
+            // Delete the license and the associated license seats
+            DB::table('license_seats')
+                ->where('id', $license->id)
+                ->update(array('assigned_to' => null,'asset_id' => null));
+
+            $licenseSeats = $license->licenseseats();
+            $licenseSeats->delete();
+            $license->delete();
+
+            // Redirect to the licenses management page
+            return response()->json(Helper::formatStandardApiResponse('success', null,  trans('admin/licenses/message.delete.success')));
+        }
+        return response()->json(Helper::formatStandardApiResponse('error', null, trans('admin/licenses/message.assoc_users')));
     }
+
+    /**
+     * Get license seat listing
+     *
+     * @author [A. Gianotto] [<snipe@snipe.net>]
+     * @since [v1.0]
+     * @param int $licenseId
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function seats(Request $request, $licenseId)
+    {
+
+        if ($license = License::find($licenseId)) {
+
+            $seats = LicenseSeat::where('license_id', $licenseId)->with('license', 'user', 'asset');
+
+            $offset = request('offset', 0);
+            $limit = request('limit', 50);
+            $order = $request->input('order') === 'asc' ? 'asc' : 'desc';
+
+            $total = $seats->count();
+            $seats = $seats->skip($offset)->take($limit)->get();
+
+            if ($seats) {
+                return (new LicenseSeatsTransformer)->transformLicenseSeats($seats, $total);
+            }
+
+        }
+
+        return response()->json(Helper::formatStandardApiResponse('error', null, trans('admin/licenses/message.does_not_exist')), 200);
+
+    }
+
+
 }

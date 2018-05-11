@@ -85,6 +85,7 @@ class UserPresenter extends Presenter
                 "switchable" => true,
                 "title" => trans('admin/users/table.phone'),
                 "visible" => true,
+                "formatter"    => "phoneFormatter",
             ],
             [
                 "field" => "address",
@@ -352,6 +353,6 @@ class UserPresenter extends Presenter
 
     public function glyph()
     {
-        return '<i class="fa fa-users"></i>';
+        return '<i class="fa fa-user"></i>';
     }
 }

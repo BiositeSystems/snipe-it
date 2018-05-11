@@ -288,7 +288,7 @@ class LicensesController extends Controller
             }
 
 
-            $this->authorize('checkout', $licenseSeat);
+            $this->authorize('checkout', $license);
 
             // Declare the rules for the form validation
             $rules = [
@@ -315,7 +315,7 @@ class LicensesController extends Controller
                 $licenseSeat->asset_id = $request->input('asset_id');
 
                 // Override asset's assigned user if available
-                if ($target->assigned_to!='') {
+                if ($target->checkedOutToUser()) {
                     $licenseSeat->assigned_to =  $target->assigned_to;
                 }
 
@@ -362,7 +362,14 @@ class LicensesController extends Controller
             // Redirect to the asset management page with error
             return redirect()->route('licenses.index')->with('error', trans('admin/licenses/message.not_found'));
         }
-        $this->authorize('checkin', $licenseSeat);
+
+        if (is_null($license = License::find($licenseSeat->license_id))) {
+            // Redirect to the asset management page with error
+            return redirect()->route('licenses.index')->with('error', trans('admin/licenses/message.not_found'));
+        }
+
+
+        $this->authorize('checkout', $license);
         return view('licenses/checkin', compact('licenseSeat'))->with('backto', $backTo);
     }
 
@@ -386,8 +393,7 @@ class LicensesController extends Controller
         }
 
         $license = License::find($licenseSeat->license_id);
-
-        $this->authorize('checkin', $licenseSeat);
+        $this->authorize('checkout', $license);
 
         if (!$license->reassignable) {
             // Not allowed to checkin
@@ -413,6 +419,8 @@ class LicensesController extends Controller
         if (!$return_to) {
             $return_to = Asset::find($licenseSeat->asset_id);
         }
+
+        \Log::debug($licenseSeat->assigned_to);
         // Update the asset data
         $licenseSeat->assigned_to                   = null;
         $licenseSeat->asset_id                      = null;
@@ -500,7 +508,7 @@ class LicensesController extends Controller
                 foreach (Input::file('licensefile') as $file) {
 
                     $rules = array(
-                    'licensefile' => 'required|mimes:png,gif,jpg,jpeg,doc,docx,pdf,txt,zip,rar,rtf,xml,lic|max:2000'
+                    'licensefile' => 'required|mimes:png,gif,jpg,jpeg,doc,docx,pdf,txt,zip,rar,rtf,xml,lic'
                     );
                     $validator = Validator::make(array('licensefile'=> $file), $rules);
 
@@ -508,8 +516,7 @@ class LicensesController extends Controller
                          return redirect()->back()->with('error', trans('admin/licenses/message.upload.invalidfiles'));
                     }
                     $extension = $file->getClientOriginalExtension();
-                    $filename = 'license-'.$license->id.'-'.str_random(8);
-                    $filename .= '-'.str_slug($file->getClientOriginalName()).'.'.$extension;
+                    $filename = 'license-'.$license->id.'-'.str_random(8).'-'.str_slug(basename($file->getClientOriginalName(), '.'.$extension)).'.'.$extension;
                     $upload_success = $file->move($destinationPath, $filename);
 
                     //Log the upload to the log
@@ -575,7 +582,7 @@ class LicensesController extends Controller
     * @param int $fileId
     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
      */
-    public function displayFile($licenseId = null, $fileId = null)
+    public function displayFile($licenseId = null, $fileId = null, $download = true)
     {
 
         $license = License::find($licenseId);
@@ -585,8 +592,31 @@ class LicensesController extends Controller
             $this->authorize('view', $license);
             $log = Actionlog::find($fileId);
             $file = $log->get_src('licenses');
+
+
+            if ($file =='') {
+                return response('File not found on server', 404)
+                    ->header('Content-Type', 'text/plain');
+            }
+
+            $mimetype = \File::mimeType($file);
+
+
+            if (!file_exists($file)) {
+                return response('File '.$file.' not found on server', 404)
+                    ->header('Content-Type', 'text/plain');
+            }
+
+            if ($download != 'true') {
+                if ($contents = file_get_contents($file)) {
+                    return Response::make($contents)->header('Content-Type', $mimetype);
+                }
+                return JsonResponse::create(["error" => "Failed validation: "], 500);
+            }
             return Response::download($file);
         }
+
+
         return redirect()->route('licenses.index')->with('error', trans('admin/licenses/message.does_not_exist', compact('id')));
     }
 

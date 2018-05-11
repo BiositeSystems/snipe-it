@@ -829,6 +829,88 @@
         "test",
         "code"
       ]
+    },
+    {
+      "login": "Gelob",
+      "name": "Ryan",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/422752?v=4",
+      "profile": "https://github.com/Gelob",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "vcordes79",
+      "name": "vcordes79",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/10672546?v=4",
+      "profile": "https://github.com/vcordes79",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "fordster78",
+      "name": "fordster78",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/27958330?v=4",
+      "profile": "https://github.com/fordster78",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "CronKz",
+      "name": "CronKz",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/34064225?v=4",
+      "profile": "https://github.com/CronKz",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "tdb",
+      "name": "Tim Bishop",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/585486?v=4",
+      "profile": "https://github.com/tdb",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "seanmcilvenna",
+      "name": "Sean McIlvenna",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/5384694?v=4",
+      "profile": "https://www.seanmcilvenna.com",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "cepacs",
+      "name": "cepacs",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/36515590?v=4",
+      "profile": "https://github.com/cepacs",
+      "contributions": [
+        "bug",
+        "doc"
+      ]
+    },
+    {
+      "login": "lea-mink",
+      "name": "lea-mink",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/37537300?v=4",
+      "profile": "https://github.com/lea-mink",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "hannahtinkler",
+      "name": "Hannah Tinkler",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/7140719?v=4",
+      "profile": "https://github.com/hannahtinkler",
+      "contributions": [
+        "code"
+      ]
     }
   ]
 }

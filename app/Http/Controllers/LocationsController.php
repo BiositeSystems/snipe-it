@@ -40,6 +40,8 @@ class LocationsController extends Controller
      */
     public function index()
     {
+        $this->authorize('view', Location::class);
+
         // Show the page
         return view('locations/index', compact('locations'));
     }
@@ -55,6 +57,7 @@ class LocationsController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', Location::class);
         $locations = Location::orderBy('name', 'ASC')->get();
 
         $location_options_array = Location::getLocationHierarchy($locations);
@@ -79,6 +82,7 @@ class LocationsController extends Controller
      */
     public function store(ImageUploadRequest $request)
     {
+        $this->authorize('create', Location::class);
         $location = new Location();
         $location->name             = $request->input('name');
         $location->parent_id        = $request->input('parent_id', null);
@@ -98,7 +102,7 @@ class LocationsController extends Controller
             $image = $request->file('image');
             $file_name = str_random(25).".".$image->getClientOriginalExtension();
             $path = public_path('uploads/locations/'.$file_name);
-            Image::make($image->getRealPath())->resize(200, null, function ($constraint) {
+            Image::make($image->getRealPath())->resize(600, null, function ($constraint) {
                 $constraint->aspectRatio();
                 $constraint->upsize();
             })->save($path);
@@ -122,6 +126,7 @@ class LocationsController extends Controller
     */
     public function apiStore(Request $request)
     {
+        $this->authorize('create', Location::class);
         $new['currency']=Setting::first()->default_currency;
 
         // create a new location instance
@@ -158,6 +163,7 @@ class LocationsController extends Controller
      */
     public function edit($locationId = null)
     {
+        $this->authorize('edit', Location::class);
         // Check if the location exists
         if (is_null($item = Location::find($locationId))) {
             return redirect()->route('locations.index')->with('error', trans('admin/locations/message.does_not_exist'));
@@ -187,6 +193,7 @@ class LocationsController extends Controller
      */
     public function update(ImageUploadRequest $request, $locationId = null)
     {
+        $this->authorize('edit', Location::class);
         // Check if the location exists
         if (is_null($location = Location::find($locationId))) {
             return redirect()->route('locations.index')->with('error', trans('admin/locations/message.does_not_exist'));
@@ -218,7 +225,7 @@ class LocationsController extends Controller
             $file_name = $location->id.'-'.str_slug($image->getClientOriginalName()) . "." . $image->getClientOriginalExtension();
 
             if ($image->getClientOriginalExtension()!='svg') {
-                Image::make($image->getRealPath())->resize(500, null, function ($constraint) {
+                Image::make($image->getRealPath())->resize(600, null, function ($constraint) {
                     $constraint->aspectRatio();
                     $constraint->upsize();
                 })->save(app('locations_upload_path').$file_name);
@@ -254,6 +261,7 @@ class LocationsController extends Controller
      */
     public function destroy($locationId)
     {
+        $this->authorize('delete', Location::class);
         if (is_null($location = Location::find($locationId))) {
             return redirect()->to(route('locations.index'))->with('error', trans('admin/locations/message.not_found'));
         }
