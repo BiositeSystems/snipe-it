@@ -28,6 +28,15 @@ class LocationPresenter extends Presenter
                 "visible" => false
             ],
             [
+                "field" => "company",
+                "searchable" => true,
+                "sortable" => true,
+                "switchable" => true,
+                "title" => trans('general.company'),
+                "visible" => false,
+                "formatter" => 'locationCompanyObjFilterFormatter'
+            ],
+            [
                 "field" => "name",
                 "searchable" => true,
                 "sortable" => true,
@@ -192,7 +201,7 @@ class LocationPresenter extends Presenter
     {
         return '<i class="fa fa-map-marker"></i>';
     }
-    
+
     public function fullName() {
         return $this->name;
     }

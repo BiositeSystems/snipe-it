@@ -46,6 +46,13 @@ class LocationsController extends Controller
         ])->withCount('assignedAssets')
         ->withCount('assets')
         ->withCount('users');
+
+         if ($request->has('company_id')) {
+            $locations = $locations->where(function ($query) use ($request) {
+                $query->where('locations.company_id', '=', $request->get('company_id'));
+            });
+        }
+
         $locations = Company::scopeCompanyables($locations);
 
         if ($request->has('search')) {
